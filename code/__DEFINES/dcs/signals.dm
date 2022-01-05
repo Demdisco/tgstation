@@ -262,9 +262,9 @@
 
 /////////////////
 
-///from base of area/Entered(): (/area)
+///from base of area/Entered(): (/area). Sent to "area-sensitive" movables, see __DEFINES/traits.dm for info.
 #define COMSIG_ENTER_AREA "enter_area"
-///from base of area/Exited(): (/area)
+///from base of area/Exited(): (/area). Sent to "area-sensitive" movables, see __DEFINES/traits.dm for info.
 #define COMSIG_EXIT_AREA "exit_area"
 ///from base of atom/Click(): (location, control, params, mob/user)
 #define COMSIG_CLICK "atom_click"
@@ -296,9 +296,7 @@
 
 // /turf signals
 
-/// from base of turf/ChangeTurf(): (path, list/new_baseturfs, flags, list/post_change_callbacks).
-/// `post_change_callbacks` is a list that signal handlers can mutate to append `/datum/callback` objects.
-/// They will be called with the new turf after the turf has changed.
+///from base of turf/ChangeTurf(): (path, list/new_baseturfs, flags, list/transferring_comps)
 #define COMSIG_TURF_CHANGE "turf_change"
 ///from base of atom/has_gravity(): (atom/asker, list/forced_gravities)
 #define COMSIG_TURF_HAS_GRAVITY "turf_has_gravity"
@@ -306,6 +304,9 @@
 #define COMSIG_TURF_MULTIZ_DEL "turf_multiz_del"
 ///from base of turf/multiz_turf_new: (turf/source, direction)
 #define COMSIG_TURF_MULTIZ_NEW "turf_multiz_new"
+///from base of turf/proc/onShuttleMove(): (turf/new_turf)
+#define COMSIG_TURF_ON_SHUTTLE_MOVE "turf_on_shuttle_move"
+
 
 // /atom/movable signals
 
@@ -318,14 +319,11 @@
 #define COMSIG_MOVABLE_CROSS "movable_cross"
 ///from base of atom/movable/Crossed(): (/atom/movable)
 #define COMSIG_MOVABLE_CROSSED "movable_crossed"
+///from base of atom/movable/Uncross(): (/atom/movable)
+#define COMSIG_MOVABLE_UNCROSS "movable_uncross"
+	#define COMPONENT_MOVABLE_BLOCK_UNCROSS (1<<0)
 ///from base of atom/movable/Uncrossed(): (/atom/movable)
 #define COMSIG_MOVABLE_UNCROSSED "movable_uncrossed"
-///from base of atom/movable/Cross(): (/atom/movable)
-#define COMSIG_MOVABLE_CROSS_OVER "movable_cross_am"
-///from base of atom/movable/Crossed(): (/atom/movable)
-#define COMSIG_MOVABLE_CROSSED_OVER "movable_crossed_am"
-///from base of atom/movable/Uncrossed(): (/atom/movable)
-#define COMSIG_MOVABLE_UNCROSSED_OVER "movable_uncross_am"
 ///from base of atom/movable/Bump(): (/atom)
 #define COMSIG_MOVABLE_BUMP "movable_bump"
 ///from base of atom/movable/throw_impact(): (/atom/hit_atom, /datum/thrownthing/throwingdatum)

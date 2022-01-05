@@ -35,6 +35,7 @@
 	var/moving_diagonally = 0 //0: not doing a diagonal move. 1 and 2: doing the first/second step of the diagonal move
 	var/atom/movable/moving_from_pull //attempt to resume grab after moving instead of before.
 	var/list/client_mobs_in_contents // This contains all the client mobs within this container
+	var/list/area_sensitive_contents // A (nested) list of contents that need to be sent signals to when moving between areas. Can include src.
 	var/list/acted_explosions //for explosion dodging
 	var/datum/forced_movement/force_moving = null //handled soley by forced_movement.dm
 
@@ -513,29 +514,12 @@
 	. = ..()
 	SEND_SIGNAL(src, COMSIG_MOVABLE_CROSSED, AM)
 
-/**
- * `Uncross()` is a default BYOND proc that is called when something is *going*
- * to exit this atom's turf. It is prefered over `Uncrossed` when you want to
- * deny that movement, such as in the case of border objects, objects that allow
- * you to walk through them in any direction except the one they block
- * (think side windows).
- *
- * While being seemingly harmless, most everything doesn't actually want to
- * use this, meaning that we are wasting proc calls for every single atom
- * on a turf, every single time something exits it, when basically nothing
- * cares.
- *
- * This overhead caused real problems on Sybil round #159709, where lag
- * attributed to Uncross was so bad that the entire master controller
- * collapsed and people made Among Us lobbies in OOC.
- *
- * If you want to replicate the old `Uncross()` behavior, the most apt
- * replacement is [`/datum/element/connect_loc`] while hooking onto
- * [`COMSIG_ATOM_EXIT`].
- */
-/atom/movable/Uncross()
-	SHOULD_NOT_OVERRIDE(TRUE)
-	CRASH("Uncross() should not be being called, please read the doc-comment for it for why.")
+/atom/movable/Uncross(atom/movable/AM, atom/newloc)
+	. = ..()
+	if(SEND_SIGNAL(src, COMSIG_MOVABLE_UNCROSS, AM) & COMPONENT_MOVABLE_BLOCK_UNCROSS)
+		return FALSE
+	if(isturf(newloc) && !CheckExit(AM, newloc))
+		return FALSE
 
 /atom/movable/Uncrossed(atom/movable/AM)
 	SEND_SIGNAL(src, COMSIG_MOVABLE_UNCROSSED, AM)
@@ -551,6 +535,33 @@
 		if(QDELETED(A))
 			return
 	A.Bumped(src)
+
+/atom/movable/Exited(atom/movable/AM, atom/newLoc)
+	. = ..()
+	if(AM.area_sensitive_contents)
+		for(var/atom/movable/location as anything in get_nested_locs(src) + src)
+			LAZYREMOVE(location.area_sensitive_contents, AM.area_sensitive_contents)
+
+/atom/movable/Entered(atom/movable/AM, atom/oldLoc)
+	. = ..()
+	if(AM.area_sensitive_contents)
+		for(var/atom/movable/location as anything in get_nested_locs(src) + src)
+			LAZYADD(location.area_sensitive_contents, AM.area_sensitive_contents)
+
+/// See traits.dm. Use this in place of ADD_TRAIT.
+/atom/movable/proc/become_area_sensitive(trait_source = TRAIT_GENERIC)
+	if(!HAS_TRAIT(src, TRAIT_AREA_SENSITIVE))
+		RegisterSignal(src, SIGNAL_REMOVETRAIT(TRAIT_AREA_SENSITIVE), .proc/on_area_sensitive_trait_loss)
+		for(var/atom/movable/location as anything in get_nested_locs(src) + src)
+			LAZYADD(location.area_sensitive_contents, src)
+	ADD_TRAIT(src, TRAIT_AREA_SENSITIVE, trait_source)
+
+/atom/movable/proc/on_area_sensitive_trait_loss()
+	SIGNAL_HANDLER
+
+	UnregisterSignal(src, SIGNAL_REMOVETRAIT(TRAIT_AREA_SENSITIVE))
+	for(var/atom/movable/location as anything in get_nested_locs(src) + src)
+		LAZYREMOVE(location.area_sensitive_contents, src)
 
 ///Sets the anchored var and returns if it was sucessfully changed or not.
 /atom/movable/proc/set_anchored(anchorvalue)

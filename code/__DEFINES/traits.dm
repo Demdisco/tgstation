@@ -240,6 +240,8 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 #define TRAIT_CANT_RIDE "cant_ride"
 #define TRAIT_BLOODY_MESS "bloody_mess" //from heparin, makes open bleeding wounds rapidly spill more blood
 #define TRAIT_COAGULATING "coagulating" //from coagulant reagents, this doesn't affect the bleeding itself but does affect the bleed warning messages
+/// From anti-convulsant medication against seizures.
+#define TRAIT_ANTICONVULSANT "anticonvulsant"
 /// The holder of this trait has antennae or whatever that hurt a ton when noogied
 #define TRAIT_ANTENNAE "antennae"
 /// Blowing kisses actually does damage to the victim
@@ -307,6 +309,12 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 #define TRAIT_PARALYSIS "paralysis"
 /// Used for limbs.
 #define TRAIT_DISABLED_BY_WOUND "disabled-by-wound"
+
+/*
+ * Used for movables that need to be updated, via COMSIG_ENTER_AREA and COMSIG_EXIT_AREA, when transitioning areas.
+ * Use [/atom/movable/proc/become_area_sensitive(trait_source)] to properly enable it. How you remove it isn't as important.
+ */
+#define TRAIT_AREA_SENSITIVE "area-sensitive"
 
 ///Used for managing KEEP_TOGETHER in [/atom/var/appearance_flags]
 #define TRAIT_KEEP_TOGETHER "keep-together"
@@ -499,6 +507,9 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 #define BERSERK_TRAIT "berserk_trait"
 /// Trait granted by lipstick
 #define LIPSTICK_TRAIT "lipstick_trait"
+/// Self-explainatory.
+#define BEAUTY_ELEMENT_TRAIT "beauty_element"
+#define MOOD_COMPONENT_TRAIT "mood_component"
 
 /**
 * Trait granted by [/mob/living/carbon/Initialize] and
